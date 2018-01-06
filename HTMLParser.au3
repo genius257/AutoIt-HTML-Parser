@@ -121,8 +121,35 @@ EndFunc
 ; Link ..........:
 ; Example .......: No
 ; ===============================================================================================================================
-Func _HTMLParser_GetElementByID($sID)
-	;TODO
+Func _HTMLParser_GetElementByID($sID, $pItem, $sHTML)
+	Local $sAttrval, $aRegexRet
+	If $pItem = 0 Then Return SetError(3, 0, 0)
+	_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	If Not ($__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+	
+	$sActiveTag = StringLower(StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)[0])
+	$iActiveTag = 0
+	
+	While 1
+		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			$sAttrval=_HTMLParser_Element_GetAttribute("id", $pItem, $sHTML)
+			If @error=0 And $sAttrval=$sID Then
+				Return $pItem
+			EndIf
+		ElseIf $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<][/]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag-=1
+		EndIf
+		If $__g_tTokenListToken.Next = 0 Or $iActiveTag<1 Then ExitLoop
+		$pItem = $__g_tTokenListToken.Next
+		_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	WEnd
+
+	Return SetError(1, 0, 0)
 EndFunc
 
 ; #FUNCTION# ====================================================================================================================
@@ -197,7 +224,7 @@ EndFunc
 
 ; #FUNCTION# ====================================================================================================================
 ; Name...........: _HTMLParser_Element_GetText
-; Description ...: Returns found text tags with tag names matching $sTagName within $pItem
+; Description ...: Returns found text within $pItem
 ; Syntax.........: _HTMLParser_Element_GetText($pItem, $sHTML[, $strtrim = True])
 ; Parameters ....: $pItem       - $tagTokenListToken structure pointer
 ;                  $sHTML       - HTML string
