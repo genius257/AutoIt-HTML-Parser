@@ -41,7 +41,7 @@ Global Enum $__HTMLPARSERCONSTANT_TYPE_NONE, $__HTMLPARSERCONSTANT_TYPE_CDATA, $
 ;                  Note: Currently this function uses the same $tagTokenListList structure every time it is called. Calling this
 ;                  function multiple times will add the new results to the previous results. This may have unexspected results.
 ; Related .......: $tagTokenListList
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser-Function
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser($sHTML)
@@ -109,27 +109,29 @@ EndFunc
 
 ; #FUNCTION# ====================================================================================================================
 ; Name...........: _HTMLParser_GetElementByID
-; Description ...: Returns the first found start tag with ID attribute contents matching $sID
-; Syntax.........: _HTMLParser_GetElementByID($sID)
+; Description ...: Returns the first found start tag with ID attribute contents matching $sID within $pItem
+; Syntax.........: _HTMLParser_GetElementByID($sID, $pItem, $sHTML)
 ; Parameters ....: $sID         - ID string
+;                  $pItem       - $tagTokenListToken structure pointer
+;                  $sHTML       - HTML string
 ; Return values .: Success      - $tagTokenListToken structure pointer with first found start tag
 ;                  Failure      - 0 and sets the @error flag to non-zero
 ; Author ........: Anders Pedersen (genius257)
 ; Modified.......:
-; Remarks .......:
+; Remarks .......: $sID is case-sensitive
 ; Related .......: $tagTokenListToken
-; Link ..........:
-; Example .......: No
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_GetElementByID-Function
+; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser_GetElementByID($sID, $pItem, $sHTML)
 	Local $sAttrval, $aRegexRet
 	If $pItem = 0 Then Return SetError(3, 0, 0)
 	_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
 	If Not ($__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
-	
+
 	$sActiveTag = StringLower(StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)[0])
 	$iActiveTag = 0
-	
+
 	While 1
 		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
@@ -164,7 +166,7 @@ EndFunc
 ; Remarks .......: This function takes into account the current MouseCoordMode setting when  obtaining  the  mouse  position.  It
 ;                  will also convert screen to client coordinates based on the parameters passed.
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_GetElementsByClassName-Function
 ; Example .......: No
 ; ===============================================================================================================================
 Func _HTMLParser_GetElementsByClassName($sClassName)
@@ -184,7 +186,7 @@ EndFunc
 ; Modified.......:
 ; Remarks .......: $sTagName is case-insensitive
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_GetElementsByTagName-Function
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser_GetElementsByTagName($sTagName, $pItem, $sHTML)
@@ -235,7 +237,7 @@ EndFunc
 ; Modified.......:
 ; Remarks .......:
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_Element_GetText-Function
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser_Element_GetText($pItem, $sHTML, $strtrim=True);TODO: if $pItem passed is a Void/Foreign element Return SetError(3, 0, 0)
@@ -289,7 +291,7 @@ EndFunc
 ; Modified.......:
 ; Remarks .......: $sAttributeName is case-insensitive
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_Element_GetAttribute-Function
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser_Element_GetAttribute($sAttributeName, $pItem, $sHTML)
@@ -327,7 +329,7 @@ EndFunc
 ; Modified.......:
 ; Remarks .......:
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_Element_GetParent-Function
 ; Example .......: No
 ; ===============================================================================================================================
 Func _HTMLParser_Element_GetParent($pItem)
@@ -335,9 +337,9 @@ Func _HTMLParser_Element_GetParent($pItem)
 EndFunc
 
 ; #FUNCTION# ====================================================================================================================
-; Name...........: _WinAPI_GetMousePos
+; Name...........: _HTMLParser_Element_GetChildren
 ; Description ...: Returns children start tags within $pItem
-; Syntax.........: _WinAPI_GetMousePos($pItem)
+; Syntax.........: _HTMLParser_Element_GetChildren($pItem)
 ; Parameters ....: $pItem       - $tagTokenListToken structure pointer
 ; Return values .: Success      - Array with $tagTokenListToken structure pointers
 ;                  Failure      - 0 and sets the @error flag to non-zero
@@ -345,7 +347,7 @@ EndFunc
 ; Modified.......:
 ; Remarks .......:
 ; Related .......: $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_Element_GetChildren-Function
 ; Example .......: No
 ; ===============================================================================================================================
 Func _HTMLParser_Element_GetChildren($pItem)
@@ -365,7 +367,7 @@ EndFunc
 ; Remarks .......: Intended for use with _HTMLParser(s) $tagTokenListList.First due to first element most likely won't be a start
 ;                  tag, required for most functions
 ; Related .......: _HTMLParser, $tagTokenListList, $tagTokenListToken
-; Link ..........:
+; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_GetFirstStartTag-Function
 ; Example .......: Yes
 ; ===============================================================================================================================
 Func _HTMLParser_GetFirstStartTag($pItem, $sHTML)
