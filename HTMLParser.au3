@@ -158,19 +158,49 @@ EndFunc
 ; Name...........: _HTMLParser_GetElementsByClassName
 ; Description ...: Returns found start tags with class attribute contents matching $sClassName
 ; Syntax.........: _HTMLParser_GetElementsByClassName($sClassName)
-; Parameters ....: $sClassName  - If True, the coordinates will be converted to client coordinates
+; Parameters ....: $sClassName  - ClassName string
+;                  $pItem       - $tagTokenListToken structure pointer
+;                  $sHTML       - HTML string
 ; Return values .: Success      - Array with $tagTokenListToken structure pointers with found start tags
 ;                  Failure      - 0 and sets the @error flag to non-zero
 ; Author ........: Anders Pedersen (genius257)
 ; Modified.......:
-; Remarks .......: This function takes into account the current MouseCoordMode setting when  obtaining  the  mouse  position.  It
-;                  will also convert screen to client coordinates based on the parameters passed.
+; Remarks .......: $sClassName is case-sensitive
 ; Related .......: $tagTokenListToken
 ; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_GetElementsByClassName-Function
 ; Example .......: No
 ; ===============================================================================================================================
-Func _HTMLParser_GetElementsByClassName($sClassName)
-	;TODO
+Func _HTMLParser_GetElementsByClassName($sClassName, $pItem, $sHTML)
+	Local $sAttrval, $aRegexRet, $aRet[0]
+	If $pItem = 0 Then Return SetError(3, 0, 0)
+	_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	If Not ($__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+
+	Local $sActiveTag = StringLower(StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)[0])
+	Local $iActiveTag = 0
+
+	While 1
+		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			$sAttrval=_HTMLParser_Element_GetAttribute("class", $pItem, $sHTML)
+			If @error=0 And StringRegExp($sAttrval, "(^|[ ])"&$sClassName&"($|[ ])") Then
+				ReDim $aRet[UBound($aRet, 1)+1]
+				$aRet[UBound($aRet, 1)-1] = $pItem
+			EndIf
+		ElseIf $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<][/]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag-=1
+		EndIf
+		If $__g_tTokenListToken.Next = 0 Or $iActiveTag<1 Then ExitLoop
+		$pItem = $__g_tTokenListToken.Next
+		_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	WEnd
+
+	If UBound($aRet, 1)>0 Then Return $aRet
+	Return SetError(1, 0, 0)
 EndFunc
 
 ; #FUNCTION# ====================================================================================================================
