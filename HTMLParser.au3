@@ -380,8 +380,43 @@ EndFunc
 ; Link ..........: https://github.com/genius257/AutoIt-HTML-Parser/wiki/_HTMLParser_Element_GetChildren-Function
 ; Example .......: No
 ; ===============================================================================================================================
-Func _HTMLParser_Element_GetChildren($pItem)
-	;TODO
+Func _HTMLParser_Element_GetChildren($pItem, $sHTML)
+	Local $aRet[0], $iRet = 0, $aRegexRet, $iLevel = 0
+
+	If $pItem = 0 Then Return SetError(3, 0, 0)
+	_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	If Not ($__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+
+	$sActiveTag = StringLower(StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)[0])
+	$iActiveTag = 0
+
+	While 1
+;~ 		ConsoleWrite(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length)&@CRLF)
+
+		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
+			$iLevel += 1
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $iLevel = 2 Then
+				ReDim $aRet[UBound($aRet, 1) + 1]
+				$aRet[UBound($aRet, 1) - 1] = $pItem
+			EndIf
+		ElseIf $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
+			$iLevel -= 1
+			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<][/]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag-=1
+		EndIf
+
+		If $__g_tTokenListToken.Next = 0 Or $iActiveTag<1 Then ExitLoop
+		$pItem = $__g_tTokenListToken.Next
+;~ 		ConsoleWrite(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length)&@CRLF)
+		_MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+	WEnd
+
+	If UBound($aRet, 1) = 0 Then Return SetError(1, 0, 0)
+	Return $aRet
 EndFunc
 
 ; #FUNCTION# ====================================================================================================================
