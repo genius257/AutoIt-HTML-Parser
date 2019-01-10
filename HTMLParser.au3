@@ -242,7 +242,6 @@ Func _HTMLParser_GetElementsByTagName($sTagName, $pItem, $sHTML)
 	$iActiveTag = 0
 
 	While 1
-		;ConsoleWrite("'"&StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length)&"'"&@CRLF)
 		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
