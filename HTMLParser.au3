@@ -26,6 +26,9 @@ Global Enum $__HTMLPARSERCONSTANT_TYPE_NONE, $__HTMLPARSERCONSTANT_TYPE_CDATA, $
 ;_HTMLParser_Element_GetParent
 ;_HTMLParser_Element_GetChildren
 ;_HTMLParser_GetFirstStartTag
+;_HTMLParser_VoidOrSelfClosingElement
+;_HTMLParser_IsVoidElement
+;_HTMLParser_IsForeignElement
 ; ===============================================================================================================================
 
 ; #FUNCTION# ====================================================================================================================
@@ -61,6 +64,13 @@ Func _HTMLParser($sHTML)
 			$iExtended = @extended
 ;~ 			ConsoleWrite(StringMid($sHTML, $iOffset, $iExtended-($iOffset))&@CRLF)
 			If _TokenList_CreateToken($__HTMLPARSERCONSTANT_TYPE_STARTTAG, $iOffset, $iExtended-($iOffset)) = 0 Then Return SetError(1, 2, 0)
+			If StringLower(StringRegExp($sHTML, "\G[<]([0-9a-zA-Z]+)", 1, $iOffset)[0]) == "script" Then
+				$aRet = StringRegExp($sHTML, "(?si)\G(.*?)<\/script>", 1, $iExtended)
+				If @error = 0 Then
+					If _TokenList_CreateToken($__HTMLPARSERCONSTANT_TYPE_TEXT, $iExtended, $iExtended+StringLen($aRet)) = 0 Then Return SetError(1, 2.1, 0)
+					$iExtended += StringLen($aRet[0])
+				EndIf
+			EndIf
 			$iOffset = $iExtended
 			ContinueLoop
 		EndIf
@@ -137,6 +147,7 @@ Func _HTMLParser_GetElementByID($sID, $pItem, $sHTML)
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
 			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iActiveTag-=1
 			$sAttrval=_HTMLParser_Element_GetAttribute("id", $pItem, $sHTML)
 			If @error=0 And $sAttrval=$sID Then
 				Return $pItem
@@ -184,6 +195,7 @@ Func _HTMLParser_GetElementsByClassName($sClassName, $pItem, $sHTML)
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
 			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iActiveTag-=1
 			$sAttrval=_HTMLParser_Element_GetAttribute("class", $pItem, $sHTML)
 			If @error=0 And StringRegExp($sAttrval, "(^|[ ])"&$sClassName&"($|[ ])") Then
 				ReDim $aRet[UBound($aRet, 1)+1]
@@ -230,10 +242,12 @@ Func _HTMLParser_GetElementsByTagName($sTagName, $pItem, $sHTML)
 	$iActiveTag = 0
 
 	While 1
+		;ConsoleWrite("'"&StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length)&"'"&@CRLF)
 		If $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
 			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iActiveTag-=1
 			If $aRegexRet[0]=$sTagName Then
 				If UBound($aRet, 1)=$iRet Then ReDim $aRet[$iRet+100]
 				$aRet[$iRet]=$pItem
@@ -287,6 +301,7 @@ Func _HTMLParser_Element_GetText($pItem, $sHTML, $strtrim=True);TODO: if $pItem 
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
 			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iActiveTag-=1
 		ElseIf $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<][/]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
@@ -398,10 +413,12 @@ Func _HTMLParser_Element_GetChildren($pItem, $sHTML)
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)
 			$aRegexRet[0] = StringLower($aRegexRet[0])
 			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iActiveTag-=1
 			If $iLevel = 2 Then
 				ReDim $aRet[UBound($aRet, 1) + 1]
 				$aRet[UBound($aRet, 1) - 1] = $pItem
 			EndIf
+			If _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML) Then $iLevel -= 1
 		ElseIf $__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
 			$iLevel -= 1
 			$aRegexRet = StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<][/]([0-9a-zA-Z]+)", 1)
@@ -449,4 +466,24 @@ Func _HTMLParser_GetFirstStartTag($pItem, $sHTML)
 	WEnd
 
 	Return SetError(1, 0, 0)
+EndFunc
+
+Func _HTMLParser_VoidOrSelfClosingElement($pItem, $sHTML)
+    _MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+    $EOT = StringLeft(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), 2)
+    Return _HTMLParser_IsVoidElement($pItem, $sHTML) Or (_HTMLParser_IsForeignElement($pItem, $sHTML) And $EOT == '/>')
+EndFunc
+
+Func _HTMLParser_IsVoidElement($pItem, $sHTML)
+    Local Static $voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']
+    _MemMoveMemory($pItem, $__g_pTokenListToken, $__g_iTokenListToken)
+    $tagName = StringLower(StringRegExp(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), "^[<]([0-9a-zA-Z]+)", 1)[0])
+    For $voidElement In $voidElements
+        If StringLower($voidElement) == $tagName Then Return True
+    Next
+    Return False
+EndFunc
+
+Func _HTMLParser_IsForeignElement($pItem, $sHTML)
+    Return False;TODO: implement true check of foreign elements
 EndFunc
