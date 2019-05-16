@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Example HTML</title>
+        <script>console.log('<<< there SHOULD be no problem, with script tags >>> <b></b></c>');</script>
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100vw;
+                min-height: 100vh;
+                background-color: #000;
+            }
+
+            img {
+                width: 100px;
+                height: 100px;
+                background-color: rgba(255, 255, 255, .1);
+            }
+
+            div {
+                box-sizing: content-box;
+                margin: 10px;
+                padding: 10px;
+                min-height: 100px;
+                background-color: rgba(255, 255, 255, .1);
+            }
+
+            footer {
+                background-color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <img src="logo-svg" alt="logo" />
+            <nav>
+                <a href="#1">Link 01</a>
+                <a href="#2">Link 02</a>
+                <a href="#3">Link 03</a>
+                <a href="#4">Link 04</a>
+                <a href="#5">Link 05</a>
+            </nav>
+        </header>
+        <main>
+            <h1>Header 1</h1>
+            <div>
+                <div>
+                    <div>
+                        <div>
+                            nested text
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="text" name="textfield" />
+        </main>
+        <footer>
+            <span>footer</span>
+            &CenterDot;
+            <a href="#6">Link 06</a>
+        </footer>
+    </body>
+</html>
