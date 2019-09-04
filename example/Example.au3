@@ -4,19 +4,34 @@ $sHTML = FileRead("data.html")
 
 $tTokenList = _HTMLParser($sHTML)
 
-$pItem = _HTMLParser_GetFirstStartTag($tTokenList.First, $sHTML);finds first start tag. In this example it will be <html>
+$pNode = _HTMLParser_GetFirstStartTag($tTokenList.head);finds first start tag. In this example it will be <html>
 
-$aText = _HTMLParser_Element_GetText($pItem, $sHTML)
+$pNode2 = _HTMLParser_GetElementByID("test", $pNode)
+$tNode = __doublyLinkedList_Node($pNode2)
+ConsoleWrite(__HTMLParser_GetString($tNode.data)&@CRLF)
 
-$aLinks = _HTMLParser_GetElementsByTagName("a", $pItem, $sHTML);finds all links <a>
+$pNode2 = _HTMLParser_GetElementsByClassName("test", $pNode)
+$tNode = __doublyLinkedList_Node($pNode2[0])
+ConsoleWrite(__HTMLParser_GetString($tNode.data)&@CRLF)
+
+$aText = _HTMLParser_Element_GetText($pNode)
+
+$aLinks = _HTMLParser_GetElementsByTagName("a", $pNode);finds all links <a>
 ;list all href attribute values from a tags
 For $i=0 To Ubound($aLinks, 1)-1
-    ConsoleWrite(_HTMLParser_Element_GetAttribute("href", $aLinks[$i], $sHTML)&@crlf)
+    ConsoleWrite(_HTMLParser_Element_GetAttribute("href", $aLinks[$i])&@crlf)
 Next
 
 ;lists all text node found in file
 ;this will be changed for a later version
 For $i=0 To Ubound($aText, 1)-1
-    _MemMoveMemory($aText[$i], $__g_pTokenListToken, $__g_iTokenListToken)
-    ConsoleWrite(StringStripWS(StringMid($sHTML, $__g_tTokenListToken.Start, $__g_tTokenListToken.Length), 8)&@crlf)
+    $tNode = __doublyLinkedList_Node($aText[$i])
+    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 8)&@CRLF)
+Next
+
+$aChildren = _HTMLParser_Element_GetChildren($pNode)
+
+For $i=0 To UBound($aChildren, 1) - 1
+    $tNode = __doublyLinkedList_Node($aChildren[$i])
+    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 8)&@CRLF)
 Next
