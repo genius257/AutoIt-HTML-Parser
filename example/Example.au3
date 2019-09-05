@@ -26,12 +26,15 @@ Next
 ;this will be changed for a later version
 For $i=0 To Ubound($aText, 1)-1
     $tNode = __doublyLinkedList_Node($aText[$i])
-    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 8)&@CRLF)
+    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 3)&@CRLF)
 Next
 
 $aChildren = _HTMLParser_Element_GetChildren($pNode)
 
 For $i=0 To UBound($aChildren, 1) - 1
     $tNode = __doublyLinkedList_Node($aChildren[$i])
-    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 8)&@CRLF)
+    ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 3)&@CRLF)
 Next
+
+$tNode = __doublyLinkedList_Node(_HTMLParser_Element_GetParent($aLinks[0]))
+ConsoleWrite(StringStripWS(__HTMLParser_GetString($tNode.data), 3)&@CRLF)
