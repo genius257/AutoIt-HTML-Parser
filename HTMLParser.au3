@@ -79,7 +79,7 @@ Func _HTMLParser($sHTML)
 				$aRet = StringRegExp($sHTML, "(?si)\G(.*?)<\/script>", 1, $iExtended)
 				If @error = 0 Then
 					;If _TokenList_CreateToken($__HTMLPARSERCONSTANT_TYPE_TEXT, $iExtended, $iExtended+StringLen($aRet)) = 0 Then Return SetError(1, 2.1, 0)
-					$tToken = __HTMLParser_CreateToken($pStr + $iOffset * 2 - 2, $iExtended-($iOffset), $__HTMLPARSERCONSTANT_TYPE_TEXT)
+					$tToken = __HTMLParser_CreateToken($pStr + $iExtended * 2 - 2, StringLen($aRet[0]), $__HTMLPARSERCONSTANT_TYPE_TEXT)
 					_doublyLinkedList_Append($tDoublyLinkedList, $tToken)
 					$iExtended += StringLen($aRet[0])
 				EndIf
