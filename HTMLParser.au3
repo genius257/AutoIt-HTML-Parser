@@ -432,7 +432,31 @@ EndFunc
 ; Example .......: No
 ; ===============================================================================================================================
 Func _HTMLParser_Element_GetParent($pItem)
-	;TODO
+	Local $sAttrval, $aRegexRet
+
+	If $pItem = 0 Then Return SetError(3, 0, 0)
+	$tNode = __doublyLinkedList_Node($pItem)
+	$tToken = DllStructCreate($__HTMLPARSERCONSTANT_tagToken, $tNode.data)
+	If Not ($tToken.type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+
+	$iActiveTag = 0
+
+	While 1
+		If $tToken.type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
+			If Not _HTMLParser_VoidOrSelfClosingElement($tNode.data) Then $iActiveTag+=1
+			If @error=0 And $iActiveTag=2 Then
+				Return $pItem
+			EndIf
+		ElseIf $tToken.type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
+			$iActiveTag-=1
+		EndIf
+		If $tNode.previous = 0 Or $iActiveTag<1 Then ExitLoop
+		$pItem = $tNode.previous
+		$tNode = __doublyLinkedList_Node($pItem)
+		$tToken = DllStructCreate($__HTMLPARSERCONSTANT_tagToken, $tNode.data)
+	WEnd
+
+	Return SetError(1, 0, 0)
 EndFunc
 
 ; #FUNCTION# ====================================================================================================================
