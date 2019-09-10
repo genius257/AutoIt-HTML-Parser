@@ -253,6 +253,45 @@ Func _HTMLParser_GetElementsByClassName($sClassName, $pItem)
 	Return SetError(1, 0, 0)
 EndFunc
 
+Func _HTMLParser_GetElementsByName($sName, $pItem)
+	Local $sAttrval, $aRegexRet, $aRet[0]
+	
+	If $pItem = 0 Then Return SetError(3, 0, 0)
+	$tNode = __doublyLinkedList_Node($pItem)
+	$tToken = DllStructCreate($__HTMLPARSERCONSTANT_tagToken, $tNode.data)
+	;If Not ($__g_tTokenListToken.Type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+	If Not ($tToken.type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG) Then Return SetError(2, 0, 0)
+
+	Local $sActiveTag = StringLower(StringRegExp(DllStructGetData(DllStructCreate("WCHAR["&$tToken.length&"]", $tToken.data), 1), "^[<]([0-9a-zA-Z]+)", 1)[0])
+	Local $iActiveTag = 0
+
+	While 1
+		If $tToken.type = $__HTMLPARSERCONSTANT_TYPE_STARTTAG Then
+			$aRegexRet = StringRegExp(DllStructGetData(DllStructCreate("WCHAR["&$tToken.length&"]", $tToken.data), 1), "^[<]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag+=1
+			If $aRegexRet[0]=$sActiveTag And _HTMLParser_VoidOrSelfClosingElement($tNode.data) Then $iActiveTag-=1
+			$sAttrval=_HTMLParser_Element_GetAttribute("name", $pItem)
+			If @error=0 And StringRegExp($sAttrval, "(^|[ ])"&$sName&"($|[ ])") Then
+				ReDim $aRet[UBound($aRet, 1)+1]
+				$aRet[UBound($aRet, 1)-1] = $pItem
+			EndIf
+		ElseIf $tToken.type = $__HTMLPARSERCONSTANT_TYPE_ENDTAG Then
+			$aRegexRet = StringRegExp(DllStructGetData(DllStructCreate("WCHAR["&$tToken.length&"]", $tToken.data), 1), "^[<][/]([0-9a-zA-Z]+)", 1)
+			$aRegexRet[0] = StringLower($aRegexRet[0])
+			If $aRegexRet[0]=$sActiveTag Then $iActiveTag-=1
+		EndIf
+
+		If $tNode.next = 0 Or $iActiveTag<1 Then ExitLoop
+		$pItem = $tNode.next
+		$tNode = __doublyLinkedList_Node($pItem)
+		$tToken = DllStructCreate($__HTMLPARSERCONSTANT_tagToken, $tNode.data)
+	WEnd
+
+	If UBound($aRet, 1)>0 Then Return $aRet
+	Return SetError(1, 0, 0)
+EndFunc
+
 ; #FUNCTION# ====================================================================================================================
 ; Name...........: _HTMLParser_GetElementsByTagName
 ; Description ...: Returns found start tags with tag names matching $sTagName within $pItem

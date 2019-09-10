@@ -14,6 +14,10 @@ $pNode2 = _HTMLParser_GetElementsByClassName("test", $pNode)
 $tNode = __doublyLinkedList_Node($pNode2[0])
 ConsoleWrite(__HTMLParser_GetString($tNode.data)&@CRLF)
 
+$pNode2 = _HTMLParser_GetElementsByName("test", $pNode)
+$tNode = __doublyLinkedList_Node($pNode2[0])
+ConsoleWrite(__HTMLParser_GetString($tNode.data)&@CRLF)
+
 $aText = _HTMLParser_Element_GetText($pNode)
 
 $aLinks = _HTMLParser_GetElementsByTagName("a", $pNode);finds all links <a>
